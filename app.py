@@ -32,12 +32,10 @@
 
 
 import os
-
-from fastapi import FastAPI
-import redis
+from fastapi import FastAPI, HTTPException
+from redis import Redis
 
 app = FastAPI()
-
 
 # Check if Render's full connection string is available, otherwise use host/port
 REDIS_URL = os.getenv("REDIS_URL")

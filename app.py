@@ -38,11 +38,15 @@ import redis
 
 app = FastAPI()
 
-r = redis.Redis(
-    host=os.getenv("REDIS_HOST", "localhost"),
-    port=int(os.getenv("REDIS_PORT", 6379)),
-    decode_responses=True
-)
+
+# Check if Render's full connection string is available, otherwise use host/port
+REDIS_URL = os.getenv("REDIS_URL")
+
+if REDIS_URL:
+    redis_client = Redis.from_url(REDIS_URL, decode_responses=True)
+else:
+    REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+    redis_client = Redis(host=REDIS_HOST, port=6379, decode_responses=True)
 
 @app.post("/hit/{key}")
 def hit(key: str):

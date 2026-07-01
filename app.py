@@ -1,31 +1,66 @@
+# import os
+# import redis
+# from fastapi import FastAPI
+
+# app = FastAPI()
+
+# REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
+# REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
+
+# r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
+
+
+# @app.post("/hit/{key}")
+# def hit(key: str):
+#     count = r.incr(f"counter:{key}")
+#     return {"key": key, "count": count}
+
+
+# @app.get("/count/{key}")
+# def count(key: str):
+#     value = r.get(f"counter:{key}")
+#     return {"key": key, "count": int(value) if value is not None else 0}
+
+
+# @app.get("/healthz")
+# def healthz():
+#     try:
+#         pong = r.ping()
+#         return {"status": "ok", "redis": "up" if pong else "down"}
+#     except Exception:
+#         return {"status": "ok", "redis": "down"}
+
+
 import os
-import redis
+
 from fastapi import FastAPI
+import redis
 
 app = FastAPI()
 
-REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
-REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
-
-r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
-
+r = redis.Redis(
+    host=os.getenv("REDIS_HOST", "localhost"),
+    port=int(os.getenv("REDIS_PORT", 6379)),
+    decode_responses=True
+)
 
 @app.post("/hit/{key}")
 def hit(key: str):
-    count = r.incr(f"counter:{key}")
+    count = r.incr(key)
     return {"key": key, "count": count}
-
 
 @app.get("/count/{key}")
 def count(key: str):
-    value = r.get(f"counter:{key}")
-    return {"key": key, "count": int(value) if value is not None else 0}
-
+    value = r.get(key)
+    return {
+        "key": key,
+        "count": int(value) if value else 0
+    }
 
 @app.get("/healthz")
-def healthz():
+def health():
     try:
-        pong = r.ping()
-        return {"status": "ok", "redis": "up" if pong else "down"}
-    except Exception:
-        return {"status": "ok", "redis": "down"}
+        r.ping()
+        return {"status":"ok","redis":"up"}
+    except:
+        return {"status":"error","redis":"down"}
